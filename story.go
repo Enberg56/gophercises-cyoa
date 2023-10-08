@@ -1,6 +1,6 @@
 package cyoa
 
-type story map[string]Chapter
+type Story map[string]Chapter
 
 type Chapter struct {
 	Title      string   `json:"title"`
@@ -9,6 +9,6 @@ type Chapter struct {
 }
 
 type Option struct {
-	Text string `json:"text"`
-	Arc  string `json:"arc"`
+	Text    string `json:"text"`
+	Chapter string `json:"arc"`
 }
