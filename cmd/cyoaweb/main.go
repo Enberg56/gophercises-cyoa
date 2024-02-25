@@ -5,10 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
+	"net/http"
 	"os"
+	"text/template"
 )
 
 func main() {
+	port := flag.Int("port", 3000, "the port to start the CYOA web application")
 	JsonFileName := flag.String("file", "../../gopher.json", "A Json file that consist containing CYOA")
 	flag.Parse()
 	fmt.Printf("Using the story in %s.\n", *JsonFileName)
@@ -23,7 +27,9 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("%+v\n", story)
+	h := NewHandler(story)
+	fmt.Printf("Starting the server on port: %d", *port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), h))
 }
 
 var defaultHandelerTmpl = `
@@ -54,6 +60,22 @@ func JsonDecoder(r io.Reader) (Story, error) {
 		return nil, err
 	}
 	return story, nil
+}
+
+func NewHandler(s Story) http.Handler {
+	return handler{s}
+}
+
+type handler struct {
+	s Story
+}
+
+func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	tpl := template.Must(template.New("").Parse(defaultHandelerTmpl))
+	err := tpl.Execute(w, h.s["intro"])
+	if err != nil {
+		panic(err)
+	}
 }
 
 type Story map[string]Chapter
